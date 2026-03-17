@@ -227,8 +227,17 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 PB
 ====================================================================================================================
 */
-	if(strstr(msg, "Kill:")-msg+1 == 1 || strstr(msg, "ClientSpawn:") -msg+1 == 1 || strstr(msg, "ClientBegin:") -msg+1 == 1 || strstr(msg, "Hit:") -msg+1 == 1) {
-        PB_Events(msg);
+	if (strstr(msg, "Kill:")-msg+1 == 1) {
+        PB_EventKill(msg);
+	}
+	if (strstr(msg, "Hit:")-msg+1 == 1) {
+        PB_EventHit(msg);
+	}
+    if (strstr(msg, "ClientSpawn:") -msg+1 == 1) {
+        PB_EventClientSpawn(msg);
+	}
+    if (strstr(msg, "ClientBegin:") -msg+1 == 1) {
+        PB_EventClientBegin(msg);
 	}
 /*
 ====================================================================================================================
