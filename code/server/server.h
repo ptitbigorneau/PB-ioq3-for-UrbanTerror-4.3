@@ -192,7 +192,10 @@ typedef struct client_s {
 PB
 ===================================================================
 */
-    int lasthitlocation;
+	int lasthitlocation;
+	int lasthitweapon;
+	int headshothits;
+	int headshotskills;
 	qboolean tod50;
 /*
 ===================================================================
