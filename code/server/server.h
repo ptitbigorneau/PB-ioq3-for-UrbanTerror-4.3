@@ -475,7 +475,10 @@ PB
 //
 // pb_fonctionq.c
 void PB_GameControl( void );
-void PB_Events(char event[1024]);
+void PB_EventClientSpawn(char event[1024]);
+void PB_EventClientBegin(char event[1024]);
+void PB_EventKill(char event[1024]);
+void PB_EventHit(char event[1024]);
 void PB_ControlWeapons( client_t *cl );
 int  PB_SearchIDWeapon(int powerups, int option);
 void PB_GiveTod50( client_t *cl );
