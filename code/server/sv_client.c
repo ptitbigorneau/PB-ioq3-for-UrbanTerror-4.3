@@ -490,6 +490,9 @@ PB
 ===================================================================
 */
 	newcl->lasthitlocation = -1;
+	newcl->lasthitweapon = -1;
+	newcl->headshothits = 0;
+	newcl->headshotskills = 0;
 	newcl->tod50 = qfalse;
 /*
 ===================================================================
