@@ -228,6 +228,82 @@ char *PB_SearchHitLocation(int id) {
     else {return "Unknown";}
 
 }
+//////////////////////////
+// PB_BotFemaleName
+//////////////////////////
+char *PB_BotFemaleName(int id) {
+
+    if ( id == 0 ) {
+        return "^6HitGirl";
+    }
+    else if ( id == 2 ) {
+        return "^6Emily";
+    }
+    else if ( id == 4 ) {
+        return "^6Zoe";
+    }
+    else if ( id == 6 ) {
+        return "^6Jennifer";
+    }
+    else if ( id == 8 ) {
+        return "^6Angel";
+    }
+    else if ( id == 10 ) {
+        return "^6Melody";
+    }
+    else if ( id == 12 ) {
+        return "^6Penny";
+    }
+    else if ( id == 14 ) {
+        return "^6Sherlyn";
+    }
+    else if ( id == 16 ) {
+        return "^6Lize";
+    }
+    else {return "^6Kath";}
+
+}
+//////////////////////////
+// PB_BotArmbandColor
+//////////////////////////
+char *PB_BotArmbandColor(int id) {
+
+    if ( id == 0 ) {
+        return "128,128,0";
+    }
+    else if ( id == 1 ) {
+        return "255,102,0";
+    }
+    else if ( id == 2 ) {
+        return "255,255,0";
+    }
+    else if ( id == 3 ) {
+        return "255,0,0";
+    }
+    else if ( id == 4 ) {
+        return "255,0,255";
+    }
+    else if ( id == 5 ) {
+        return "0,255,0";
+    }
+    else if ( id == 6 ) {
+        return "0,255,255";
+    }
+    else if ( id == 7 ) {
+        return "255,255,255";
+    }
+    else if ( id == 8 ) {
+        return "128,0,128";
+    }
+    else if ( id == 9 ) {
+        return "255,0,128";
+    }
+    else if ( id == 10 ) {
+        return "128,0,255";
+    }
+    else {return "128,128,128";}
+
+}
 ///////////////////////////////////////////////////////////
 //PB_Replace_str
 //////////////////////////////////////////////////////////
