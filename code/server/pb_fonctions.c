@@ -1079,7 +1079,7 @@ PB_KillDistance
 */
 static void PB_KillDistance( client_t *aclient, client_t *vclient, int idweapon ) {
 
-    if (aclient - svs.clients == vclient - svs.clients)
+    if (aclient - svs.clients == vclient - svs.clients || aclient->netchan.remoteAddress.type == NA_BOT)
     {
         return;
     }
@@ -1115,58 +1115,100 @@ static void PB_KillDistance( client_t *aclient, client_t *vclient, int idweapon 
 
     if (idweapon != 22 && idweapon != 23 && idweapon != 25 && idweapon != 37) {
 
-        if (( sv_gametype->integer > 2 && sv_gametype->integer < 9 ) || sv_gametype->integer == 11 ) {
+        if (( sv_gametype->integer > 2 && sv_gametype->integer < 9 ) || sv_gametype->integer == 10 ) {
 
             if (ateam == vteam ) {
-                SV_SendServerCommand(NULL, "print\"%s%s ^7killed %s%s^7 at ^3%.2f m ^7[%s][%s]\"\n", PB_SearchColorTeam(ateam), acname, PB_SearchColorTeam(vteam), vcname, ((dist/100)+((dist/100*0.625))), hitlocation, weapon );
+                SV_SendServerCommand(NULL, "print\"%s%s ^7killed %s%s^7 from ^3%.2f m ^7[%s][%s]\"\n", PB_SearchColorTeam(ateam), acname, PB_SearchColorTeam(vteam), vcname, (dist/50), hitlocation, weapon );
                 return;
             }
         }
 
-        SV_SendServerCommand(NULL, "print\"%s%s ^7killed %s%s^7 at ^3%.2f m ^7[%s][%s]\"\n", PB_SearchColorTeam(ateam), acname, PB_SearchColorTeam(vteam), vcname, ((dist/100)+((dist/100*0.625))), hitlocation, weapon );
+        if (hitid == 1 || hitid == 2)
+        {
+            aclient->headshotskills = aclient->headshotskills + 1;
 
+            char *texths = "kills";
+
+            if (aclient->headshotskills < 2) {texths = "kill";}
+
+            SV_SendServerCommand(NULL, "chat\"%s%s ^7got ^3%i ^7HeadShot %s!\"\n", PB_SearchColorTeam(ateam), acname, aclient->headshotskills, texths);
+            SV_SendServerCommand(NULL, "print\"%s%s ^7killed %s%s ^7 with a ^3HeadShot^7 from ^3%.2f ^7[%s]\"\n", PB_SearchColorTeam(ateam), acname, PB_SearchColorTeam(vteam), vcname, (dist/50), weapon );
+
+        }
+        else {
+            SV_SendServerCommand(NULL, "print\"%s%s ^7killed %s%s^7 from ^3%.2f ^7[%s][%s]\"\n", PB_SearchColorTeam(ateam), acname, PB_SearchColorTeam(vteam), vcname, (dist/50), hitlocation, weapon );
+        }
     }
     else {
 
-        SV_SendServerCommand(NULL, "print\"%s%s ^7killed %s%s^7 at ^3%.2f m ^7[%s]\"\n", PB_SearchColorTeam(ateam), acname, PB_SearchColorTeam(vteam), vcname, ((dist/100)+((dist/100*0.625))), weapon );
+        SV_SendServerCommand(NULL, "print\"%s%s ^7killed %s%s^7 from ^3%.2f ^7[%s]\"\n", PB_SearchColorTeam(ateam), acname, PB_SearchColorTeam(vteam), vcname, (dist/50), weapon );
     }
 
 }
 /*
 =======================
-PB_Events
+PB_EventKill
 =======================
 */
-void PB_Events(char event[1024])
+void PB_EventKill(char event[1024])
 {
-    if (sv_gametype->integer == 9){ return; }
+    if (sv_gametype->integer == 9) {
+         return; 
+    }
 
     Cmd_TokenizeString( event );
 
-    // Event Kill
-    if (Q_stricmp(Cmd_Argv(0), "Kill:") == 0) {
-        if (atoi(Cmd_Argv(1)) == 1022 && atoi(Cmd_Argv(2)) < 100) {
+    if (atoi(Cmd_Argv(1)) == 1022 && atoi(Cmd_Argv(2)) < 100) {
 
-            client_t *vcl = PB_SearchUser(atoi(Cmd_Argv(2)));
-            client_t *acl = vcl;
-            PB_CheckDeadorAlive( acl, vcl, "dead" );
+        client_t *vcl = PB_SearchUser(atoi(Cmd_Argv(2)));
+        client_t *acl = vcl;
+        PB_CheckDeadorAlive( acl, vcl, "dead" );
 
-        }
-        if (atoi(Cmd_Argv(1)) < 100 && atoi(Cmd_Argv(2)) < 100) {
-
-            client_t *acl = PB_SearchUser(atoi(Cmd_Argv(1)));
-            client_t *vcl = PB_SearchUser(atoi(Cmd_Argv(2)));
-
-            PB_CheckDeadorAlive( acl, vcl, "dead" );
-
-            if (Cvar_VariableValue("g_loghits") != 0) {
-                PB_KillDistance( acl, vcl, atoi(Cmd_Argv(3)));
-            }
-
-        }
     }
-    // Event ClientSpawn
-    if (Q_stricmp(Cmd_Argv(0), "ClientSpawn:") == 0) {
+    if (atoi(Cmd_Argv(1)) < 100 && atoi(Cmd_Argv(2)) < 100) {
+
+        client_t *acl = PB_SearchUser(atoi(Cmd_Argv(1)));
+        client_t *vcl = PB_SearchUser(atoi(Cmd_Argv(2)));
+
+        PB_CheckDeadorAlive( acl, vcl, "dead" );
+
+        if (Cvar_VariableValue("g_loghits") != 0) {
+            PB_KillDistance( acl, vcl, atoi(Cmd_Argv(3)));
+        }
+
+    }
+}
+/*
+=======================
+PB_EventHit
+=======================
+*/
+void PB_EventHit(char event[1024])
+{
+    if (sv_gametype->integer == 9 || Cvar_VariableValue("g_loghits") == 0) {
+         return; 
+    }
+
+    Cmd_TokenizeString( event );
+    
+    if (atoi(Cmd_Argv(1)) < 100 && atoi(Cmd_Argv(2)) < 100) {
+        client_t *vcl = PB_SearchUser(atoi(Cmd_Argv(1)));
+        vcl->lasthitlocation = atoi(Cmd_Argv(3));
+        vcl->lasthitweapon = atoi(Cmd_Argv(4));
+    }
+}
+/*
+=======================
+PB_EventClientSpawn
+=======================
+*/
+void PB_EventClientSpawn(char event[1024])
+{
+    if (sv_gametype->integer == 9) {
+         return; 
+    }
+
+    Cmd_TokenizeString( event );
 
         if (atoi(Cmd_Argv(1)) < 100) {
 
@@ -1175,10 +1217,16 @@ void PB_Events(char event[1024])
 
             PB_CheckDeadorAlive( cl, cl, "spawn" );
 
+            if ( cl->netchan.remoteAddress.type == NA_BOT ) {
+                return;
+            }
+
             if (ps->persistant[PERS_SPAWN_COUNT] < 2 || ps->persistant[PERS_HITS] == 0) {
                 if (Cvar_VariableValue("g_loghits") != 0) {
                     cl->lasthitlocation = -1;
-
+                    cl->headshothits = 0;
+                    cl->headshotskills = 0;
+                    cl->lasthitweapon = -1;
                 }
             }
             if (Cvar_VariableValue("g_instagib") == 0) {
@@ -1200,37 +1248,58 @@ void PB_Events(char event[1024])
             if (pb_snipeteam->integer == 3) {
                 PB_SpawnSnipeOnly(cl);
             }
-        }
-    }
-    // Event Hit
-    if (Q_stricmp(Cmd_Argv(0), "Hit:") == 0) {
-
-        if (atoi(Cmd_Argv(1)) < 100 && atoi(Cmd_Argv(2)) < 100) {
-            if (Cvar_VariableValue("g_loghits") != 0) {
-                client_t *vcl = PB_SearchUser(atoi(Cmd_Argv(1)));
-                 vcl->lasthitlocation = atoi(Cmd_Argv(3));
-            }
 
         }
+}
+/*
+=======================
+PB_EventClientBegin
+=======================
+*/
+void PB_EventClientBegin(char event[1024])
+{
+    if (sv_gametype->integer == 9) {
+         return; 
     }
-    //Event ClientBegin
-    if (Q_stricmp(Cmd_Argv(0), "ClientBegin:") == 0) {
 
-        if (atoi(Cmd_Argv(1)) < 100) {
+    Cmd_TokenizeString( event );
+    
+    if (atoi(Cmd_Argv(1)) < 100) {
 
-            client_t *cl = PB_SearchUser(atoi(Cmd_Argv(1)));
-            // Bots armband et name color ( pas vraiment utile sauf pour la commande rcon players - résout le probléme [connecting] bot )
-            if ( cl->netchan.remoteAddress.type == NA_BOT ) {
-                char *armband = "0,255,255";
+        client_t *cl = PB_SearchUser(atoi(Cmd_Argv(1)));
+
+        if ( cl->netchan.remoteAddress.type == NA_BOT ) {
+            char *armband = PB_BotArmbandColor(atoi(Cmd_Argv(1)));
+            if (atoi(Cmd_Argv(1))%2) {
+                
                 char *color ="^5";
                 char name[64];
                 strcpy(name, color);
-                strcat (name, cl->name);
+                strcat(name, cl->name);
                 Info_SetValueForKey(cl->userinfo, "name", name);
+                Info_SetValueForKey(cl->userinfo, "racered", "3");
+                Info_SetValueForKey(cl->userinfo, "raceblue", "3");
+                Info_SetValueForKey(cl->userinfo, "racefree", "3");
+                Info_SetValueForKey(cl->userinfo, "funred", "ninja");
+                Info_SetValueForKey(cl->userinfo, "funblue", "ninja");
+                Info_SetValueForKey(cl->userinfo, "funfree", "ninja");
                 Info_SetValueForKey(cl->userinfo, "cg_RGB", armband);
                 SV_UserinfoChanged(cl);
                 VM_Call(gvm, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients);
 
+            }
+            else {
+                char *name = PB_BotFemaleName(atoi(Cmd_Argv(1)));
+                Info_SetValueForKey(cl->userinfo, "name", name);
+                Info_SetValueForKey(cl->userinfo, "racered", "1");
+                Info_SetValueForKey(cl->userinfo, "raceblue", "1");
+                Info_SetValueForKey(cl->userinfo, "racefree", "1");
+                Info_SetValueForKey(cl->userinfo, "funred", "ninja");
+                Info_SetValueForKey(cl->userinfo, "funblue", "ninja");
+                Info_SetValueForKey(cl->userinfo, "funfree", "ninja");
+                Info_SetValueForKey(cl->userinfo, "cg_RGB", armband);
+                SV_UserinfoChanged(cl);
+                VM_Call(gvm, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients);
             }
         }
     }
